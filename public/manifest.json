@@ -1,6 +1,6 @@
 {
-  "short_name": "Elm App",
-  "name": "Create Elm App Sample",
+  "short_name": "Elm TodoMVC",
+  "name": "There is no MVC!",
   "icons": [
     {
       "src": "favicon.ico",
