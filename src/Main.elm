@@ -2,6 +2,7 @@ module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 
 
 ---- PROGRAM ----
@@ -27,16 +28,21 @@ type alias Model =
 
 
 type alias Todo =
-    { description : String
+    { id : TodoId
+    , description : String
     , completed : Bool
     }
+
+
+type alias TodoId =
+    Int
 
 
 initialModel : Model
 initialModel =
     { todos =
-        [ Todo "buy some milk" True
-        , Todo "empty bins" False
+        [ Todo 1 "buy some milk" True
+        , Todo 2 "empty bins" False
         ]
     }
 
@@ -51,12 +57,31 @@ init =
 
 
 type Msg
-    = Noop
+    = CheckTodo TodoId
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    case msg of
+        CheckTodo id ->
+            updateModel <| checkTodo id model
+
+
+updateModel : Model -> ( Model, Cmd Msg )
+updateModel model =
     ( model, Cmd.none )
+
+
+checkTodo : TodoId -> Model -> Model
+checkTodo id model =
+    let
+        check todo =
+            if todo.id == id then
+                { todo | completed = not todo.completed }
+            else
+                todo
+    in
+        { model | todos = List.map check model.todos }
 
 
 
@@ -134,6 +159,7 @@ viewTodo todo =
                 [ class "toggle"
                 , type_ "checkbox"
                 , checked todo.completed
+                , onClick <| CheckTodo todo.id
                 ]
                 []
             , label []
