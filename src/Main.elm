@@ -22,12 +22,23 @@ main =
 
 
 type alias Model =
-    {}
+    { todos : List Todo
+    }
+
+
+type alias Todo =
+    { description : String
+    , completed : Bool
+    }
 
 
 initialModel : Model
 initialModel =
-    {}
+    { todos =
+        [ Todo "buy some milk" True
+        , Todo "empty bins" False
+        ]
+    }
 
 
 init : ( Model, Cmd Msg )
@@ -69,31 +80,10 @@ view model =
             [ input [ class "toggle-all", type_ "checkbox" ]
                 []
             , ul [ class "todo-list" ]
-                [ li [ class "completed" ]
-                    [ div [ class "view" ]
-                        [ input [ class "toggle", type_ "checkbox" ]
-                            []
-                        , label []
-                            [ text "buy some milk" ]
-                        , button [ class "destroy" ]
-                            []
-                        ]
-                    , input [ class "edit", value "get some milk" ]
-                        []
-                    ]
-                , li [ class "" ]
-                    [ div [ class "view" ]
-                        [ input [ class "toggle", type_ "checkbox" ]
-                            []
-                        , label []
-                            [ text "empty bins" ]
-                        , button [ class "destroy" ]
-                            []
-                        ]
-                    , input [ class "edit", value "empty bind" ]
-                        []
-                    ]
-                ]
+                (List.map
+                    viewTodo
+                    model.todos
+                )
             ]
         , footer [ class "footer" ]
             [ span [ class "todo-count" ]
@@ -127,4 +117,30 @@ view model =
             , button [ class "clear-completed" ]
                 [ text "Clear completed" ]
             ]
+        ]
+
+
+viewTodo : Todo -> Html Msg
+viewTodo todo =
+    li
+        [ class <|
+            if todo.completed then
+                "completed"
+            else
+                ""
+        ]
+        [ div [ class "view" ]
+            [ input
+                [ class "toggle"
+                , type_ "checkbox"
+                , checked todo.completed
+                ]
+                []
+            , label []
+                [ text todo.description ]
+            , button [ class "destroy" ]
+                []
+            ]
+        , input [ class "edit", value todo.description ]
+            []
         ]
