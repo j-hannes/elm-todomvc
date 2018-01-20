@@ -3,6 +3,7 @@ module Main exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Html.Events.Extra exposing (onEnter)
 
 
 ---- PROGRAM ----
@@ -24,6 +25,8 @@ main =
 
 type alias Model =
     { todos : List Todo
+    , nextTodoId : TodoId
+    , newTodo : String
     }
 
 
@@ -44,6 +47,8 @@ initialModel =
         [ Todo 1 "buy some milk" True
         , Todo 2 "empty bins" False
         ]
+    , nextTodoId = 3
+    , newTodo = ""
     }
 
 
@@ -58,6 +63,8 @@ init =
 
 type Msg
     = CheckTodo TodoId
+    | UpdateNewTodo String
+    | AddTodo
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -65,6 +72,12 @@ update msg model =
     case msg of
         CheckTodo id ->
             updateModel <| checkTodo id model
+
+        UpdateNewTodo newTodo ->
+            updateModel <| setNewTodo newTodo model
+
+        AddTodo ->
+            updateModel <| addTodo model
 
 
 updateModel : Model -> ( Model, Cmd Msg )
@@ -84,6 +97,30 @@ checkTodo id model =
         { model | todos = List.map check model.todos }
 
 
+setNewTodo : String -> Model -> Model
+setNewTodo newTodo model =
+    { model | newTodo = newTodo }
+
+
+addTodo : Model -> Model
+addTodo model =
+    let
+        description =
+            String.trim model.newTodo
+
+        nextTodo =
+            Todo model.nextTodoId description False
+    in
+        if String.length description == 0 then
+            model
+        else
+            { model
+                | todos = nextTodo :: model.todos
+                , nextTodoId = model.nextTodoId + 1
+                , newTodo = ""
+            }
+
+
 
 ---- VIEW ----
 
@@ -97,7 +134,9 @@ view model =
             , input
                 [ class "new-todo"
                 , placeholder "What needs to be done?"
-                , value ""
+                , value model.newTodo
+                , onInput UpdateNewTodo
+                , onEnter AddTodo
                 ]
                 []
             ]
