@@ -65,6 +65,7 @@ type Msg
     = CheckTodo TodoId
     | UpdateNewTodo String
     | AddTodo
+    | DeleteTodo TodoId
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -78,6 +79,9 @@ update msg model =
 
         AddTodo ->
             updateModel <| addTodo model
+
+        DeleteTodo id ->
+            updateModel <| deleteTodo id model
 
 
 updateModel : Model -> ( Model, Cmd Msg )
@@ -119,6 +123,15 @@ addTodo model =
                 , nextTodoId = model.nextTodoId + 1
                 , newTodo = ""
             }
+
+
+deleteTodo : TodoId -> Model -> Model
+deleteTodo id model =
+    let
+        filter =
+            List.filter (\todo -> todo.id /= id)
+    in
+        { model | todos = filter model.todos }
 
 
 
@@ -203,7 +216,10 @@ viewTodo todo =
                 []
             , label []
                 [ text todo.description ]
-            , button [ class "destroy" ]
+            , button
+                [ class "destroy"
+                , onClick <| DeleteTodo todo.id
+                ]
                 []
             ]
         , input [ class "edit", value todo.description ]
