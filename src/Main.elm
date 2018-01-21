@@ -43,11 +43,8 @@ type alias TodoId =
 
 initialModel : Model
 initialModel =
-    { todos =
-        [ Todo 1 "buy some milk" True
-        , Todo 2 "empty bins" False
-        ]
-    , nextTodoId = 3
+    { todos = []
+    , nextTodoId = 1
     , newTodo = ""
     }
 
@@ -163,16 +160,7 @@ view model =
                 )
             ]
         , footer [ class "footer" ]
-            [ span [ class "todo-count" ]
-                [ strong []
-                    [ text "1" ]
-                , span []
-                    [ text " " ]
-                , span []
-                    [ text "item" ]
-                , span []
-                    [ text " left" ]
-                ]
+            [ viewTodoCount model.todos
             , ul [ class "filters" ]
                 [ li []
                     [ a [ class "selected", href "#/" ]
@@ -195,6 +183,11 @@ view model =
                 [ text "Clear completed" ]
             ]
         ]
+
+
+countIncomplete : List Todo -> Int
+countIncomplete todos =
+    List.length <| List.filter (\todo -> not todo.completed) todos
 
 
 viewTodo : Todo -> Html Msg
@@ -225,3 +218,27 @@ viewTodo todo =
         , input [ class "edit", value todo.description ]
             []
         ]
+
+
+viewTodoCount : List Todo -> Html Msg
+viewTodoCount todos =
+    let
+        incompleteTodoCount =
+            countIncomplete todos
+
+        itemLabel =
+            if incompleteTodoCount == 1 then
+                "item"
+            else
+                "items"
+    in
+        span [ class "todo-count" ]
+            [ strong []
+                [ text <| toString incompleteTodoCount ]
+            , span []
+                [ text " " ]
+            , span []
+                [ text itemLabel ]
+            , span []
+                [ text " left" ]
+            ]
