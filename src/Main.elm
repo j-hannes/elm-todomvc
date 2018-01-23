@@ -27,6 +27,7 @@ type alias Model =
     { todos : List Todo
     , nextTodoId : TodoId
     , newTodo : String
+    , todoFilter : TodoFilter
     }
 
 
@@ -41,11 +42,18 @@ type alias TodoId =
     Int
 
 
+type TodoFilter
+    = All
+    | Active
+    | Completed
+
+
 initialModel : Model
 initialModel =
     { todos = []
     , nextTodoId = 1
     , newTodo = ""
+    , todoFilter = All
     }
 
 
@@ -161,24 +169,7 @@ view model =
             ]
         , footer [ class "footer" ]
             [ viewTodoCount model.todos
-            , ul [ class "filters" ]
-                [ li []
-                    [ a [ class "selected", href "#/" ]
-                        [ text "All" ]
-                    ]
-                , span []
-                    []
-                , li []
-                    [ a [ class "", href "#/active" ]
-                        [ text "Active" ]
-                    ]
-                , span []
-                    []
-                , li []
-                    [ a [ class "", href "#/completed" ]
-                        [ text "Completed" ]
-                    ]
-                ]
+            , viewFilters model
             , button [ class "clear-completed" ]
                 [ text "Clear completed" ]
             ]
@@ -241,4 +232,37 @@ viewTodoCount todos =
                 [ text itemLabel ]
             , span []
                 [ text " left" ]
+            ]
+
+
+viewFilters : Model -> Html Msg
+viewFilters model =
+    let
+        filters =
+            [ ( All, "#/" )
+            , ( Active, "#/active" )
+            , ( Completed, "#/completed" )
+            ]
+    in
+        ul [ class "filters" ] <|
+            List.intersperse (span [] []) <|
+                List.map (viewFilter model) filters
+
+
+viewFilter : Model -> ( TodoFilter, String ) -> Html Msg
+viewFilter model ( todoFilter, path ) =
+    let
+        className =
+            (if model.todoFilter == todoFilter then
+                "selected"
+             else
+                ""
+            )
+    in
+        li []
+            [ a
+                [ class className
+                , href path
+                ]
+                [ text <| toString todoFilter ]
             ]
