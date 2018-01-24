@@ -183,10 +183,7 @@ view model =
             [ input [ class "toggle-all", type_ "checkbox" ]
                 []
             , ul [ class "todo-list" ]
-                (List.map
-                    viewTodo
-                    model.todos
-                )
+                (List.map viewTodo <| filterTodos model.todoFilter model.todos)
             ]
         , footer [ class "footer" ]
             [ viewTodoCount model.todos
@@ -195,6 +192,19 @@ view model =
                 [ text "Clear completed" ]
             ]
         ]
+
+
+filterTodos : TodoFilter -> List Todo -> List Todo
+filterTodos todoFilter todos =
+    case todoFilter of
+        All ->
+            todos
+
+        Active ->
+            List.filter (\todo -> not todo.completed) todos
+
+        Completed ->
+            List.filter (\todo -> todo.completed) todos
 
 
 countIncomplete : List Todo -> Int
