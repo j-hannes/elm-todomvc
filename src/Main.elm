@@ -4,6 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Events.Extra exposing (onEnter)
+import Navigation
 
 
 ---- PROGRAM ----
@@ -11,7 +12,7 @@ import Html.Events.Extra exposing (onEnter)
 
 main : Program Never Model Msg
 main =
-    Html.program
+    Navigation.program UrlChange
         { view = view
         , init = init
         , update = update
@@ -48,8 +49,8 @@ type TodoFilter
     | Completed
 
 
-initialModel : Model
-initialModel =
+initialModel : Navigation.Location -> Model
+initialModel location =
     { todos = []
     , nextTodoId = 1
     , newTodo = ""
@@ -57,9 +58,9 @@ initialModel =
     }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( initialModel, Cmd.none )
+init : Navigation.Location -> ( Model, Cmd Msg )
+init location =
+    ( initialModel location, Cmd.none )
 
 
 
@@ -71,6 +72,7 @@ type Msg
     | UpdateNewTodo String
     | AddTodo
     | DeleteTodo TodoId
+    | UrlChange Navigation.Location
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -87,6 +89,9 @@ update msg model =
 
         DeleteTodo id ->
             updateModel <| deleteTodo id model
+
+        UrlChange location ->
+            updateModel <| updateFilter location.hash model
 
 
 updateModel : Model -> ( Model, Cmd Msg )
@@ -137,6 +142,22 @@ deleteTodo id model =
             List.filter (\todo -> todo.id /= id)
     in
         { model | todos = filter model.todos }
+
+
+updateFilter : String -> Model -> Model
+updateFilter hash model =
+    let
+        todoFilter =
+            if hash == "#/" then
+                All
+            else if hash == "#/active" then
+                Active
+            else if hash == "#/completed" then
+                Completed
+            else
+                model.todoFilter
+    in
+        { model | todoFilter = todoFilter }
 
 
 
