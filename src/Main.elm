@@ -73,6 +73,7 @@ type Msg
     | AddTodo
     | DeleteTodo TodoId
     | UrlChange Navigation.Location
+    | ClearCompleted
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -92,6 +93,9 @@ update msg model =
 
         UrlChange location ->
             updateModel <| updateFilter location.hash model
+
+        ClearCompleted ->
+            updateModel <| clearCompleted model
 
 
 updateModel : Model -> ( Model, Cmd Msg )
@@ -160,6 +164,11 @@ updateFilter hash model =
         { model | todoFilter = todoFilter }
 
 
+clearCompleted : Model -> Model
+clearCompleted model =
+    { model | todos = List.filter (\todo -> not todo.completed) model.todos }
+
+
 
 ---- VIEW ----
 
@@ -188,7 +197,10 @@ view model =
         , footer [ class "footer" ]
             [ viewTodoCount model.todos
             , viewFilters model
-            , button [ class "clear-completed" ]
+            , button
+                [ class "clear-completed"
+                , onClick ClearCompleted
+                ]
                 [ text "Clear completed" ]
             ]
         ]
