@@ -4,6 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Events.Extra exposing (onEnter)
+import Maybe exposing (map, withDefault)
 import Navigation
 
 
@@ -29,6 +30,7 @@ type alias Model =
     , nextTodoId : TodoId
     , newTodo : String
     , todoFilter : TodoFilter
+    , editing : Maybe TodoId
     }
 
 
@@ -55,6 +57,7 @@ initialModel location =
     , nextTodoId = 1
     , newTodo = ""
     , todoFilter = All
+    , editing = Nothing
     }
 
 
@@ -72,6 +75,9 @@ type Msg
     | UpdateNewTodo String
     | AddTodo
     | DeleteTodo TodoId
+    | EditTodo TodoId
+    | UpdateEditingTodo String
+    | FinishEditing
     | UrlChange Navigation.Location
     | ClearCompleted
 
@@ -90,6 +96,15 @@ update msg model =
 
         DeleteTodo id ->
             updateModel <| deleteTodo id model
+
+        EditTodo id ->
+            updateModel <| setEditing id model
+
+        UpdateEditingTodo description ->
+            updateModel <| updateEditing description model
+
+        FinishEditing ->
+            updateModel <| finishEditing model
 
         UrlChange location ->
             updateModel <| updateFilter location.hash model
@@ -148,6 +163,31 @@ deleteTodo id model =
         { model | todos = filter model.todos }
 
 
+setEditing : TodoId -> Model -> Model
+setEditing id model =
+    { model | editing = Just id }
+
+
+updateEditing : String -> Model -> Model
+updateEditing description model =
+    let
+        updateTodos : Todo -> Todo
+        updateTodos todo =
+            if Just todo.id == model.editing then
+                { todo | description = description }
+            else
+                todo
+    in
+        { model
+            | todos = List.map updateTodos model.todos
+        }
+
+
+finishEditing : Model -> Model
+finishEditing model =
+    { model | editing = Nothing }
+
+
 updateFilter : String -> Model -> Model
 updateFilter hash model =
     let
@@ -192,7 +232,7 @@ view model =
             [ input [ class "toggle-all", type_ "checkbox" ]
                 []
             , ul [ class "todo-list" ]
-                (List.map viewTodo <| filterTodos model.todoFilter model.todos)
+                (List.map (viewTodo model.editing) <| filterTodos model.todoFilter model.todos)
             ]
         , footer [ class "footer" ]
             [ viewTodoCount model.todos
@@ -224,14 +264,13 @@ countIncomplete todos =
     List.length <| List.filter (\todo -> not todo.completed) todos
 
 
-viewTodo : Todo -> Html Msg
-viewTodo todo =
+viewTodo : Maybe TodoId -> Todo -> Html Msg
+viewTodo editing todo =
     li
-        [ class <|
-            if todo.completed then
-                "completed"
-            else
-                ""
+        [ classList
+            [ ( "completed", todo.completed )
+            , ( "editing", editing == Just todo.id )
+            ]
         ]
         [ div [ class "view" ]
             [ input
@@ -241,15 +280,23 @@ viewTodo todo =
                 , onClick <| CheckTodo todo.id
                 ]
                 []
-            , label []
-                [ text todo.description ]
+            , label
+                [ onDoubleClick <| EditTodo todo.id
+                ]
+                [ text todo.description
+                ]
             , button
                 [ class "destroy"
                 , onClick <| DeleteTodo todo.id
                 ]
                 []
             ]
-        , input [ class "edit", value todo.description ]
+        , input
+            [ class "edit"
+            , value todo.description
+            , onInput UpdateEditingTodo
+            , onBlur FinishEditing
+            ]
             []
         ]
 
