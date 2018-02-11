@@ -83,34 +83,34 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg =
     case msg of
         CheckTodo id ->
-            updateModel <| checkTodo id model
+            updateModel << checkTodo id
 
         UpdateNewTodo newTodo ->
-            updateModel <| setNewTodo newTodo model
+            updateModel << setNewTodo newTodo
 
         AddTodo ->
-            updateModel <| addTodo model
+            updateModel << addTodo
 
         DeleteTodo id ->
-            updateModel <| deleteTodo id model
+            updateModel << deleteTodo id
 
         EditTodo id ->
-            updateModel <| setEditing id model
+            updateModel << setEditing id
 
         UpdateEditingTodo description ->
-            updateModel <| updateEditing description model
+            updateModel << updateEditing description
 
         FinishEditing ->
-            updateModel <| finishEditing model
+            updateModel << finishEditing
 
         UrlChange location ->
-            updateModel <| updateFilter location.hash model
+            updateModel << updateFilter location.hash
 
         ClearCompleted ->
-            updateModel <| clearCompleted model
+            updateModel << clearCompleted
 
 
 updateModel : Model -> ( Model, Cmd Msg )
