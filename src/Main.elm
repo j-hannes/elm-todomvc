@@ -1,11 +1,13 @@
 module Main exposing (..)
 
+import Dom
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Events.Extra exposing (onEnter)
 import Maybe exposing (map, withDefault)
 import Navigation
+import Task
 
 
 ---- PROGRAM ----
@@ -80,6 +82,7 @@ type Msg
     | FinishEditing
     | UrlChange Navigation.Location
     | ClearCompleted
+    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -98,7 +101,13 @@ update msg =
             updateModel << deleteTodo id
 
         EditTodo id ->
-            updateModel << setEditing id
+            let
+                focus =
+                    Dom.focus ("todo-" ++ toString id)
+            in
+                (\model ->
+                    ( setEditing id model, Task.attempt (\_ -> NoOp) focus )
+                )
 
         UpdateEditingTodo description ->
             updateModel << updateEditing description
@@ -111,6 +120,9 @@ update msg =
 
         ClearCompleted ->
             updateModel << clearCompleted
+
+        NoOp ->
+            updateModel << identity
 
 
 updateModel : Model -> ( Model, Cmd Msg )
@@ -293,6 +305,7 @@ viewTodo editing todo =
             ]
         , input
             [ class "edit"
+            , id ("todo-" ++ toString todo.id)
             , value todo.description
             , onInput UpdateEditingTodo
             , onBlur FinishEditing
